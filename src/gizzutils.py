@@ -1,6 +1,8 @@
 import getpass
 import ghlib
 import os.path
+import re
+import subprocess
 
 class PasswordGrabber:
 
@@ -29,6 +31,20 @@ class BasicUsernameGrabber:
         return self._username
 
 
+class StoredUsernameGrabber:
+
+    def __init__(self):
+        self._username = None
+        self._path = os.path.expanduser('~/.gizzconfig')
+
+    def get_username(self):
+        if self._username is None:
+            with open(self._path, 'r') as in_file:
+                self._username = in_file.readline().strip()
+
+        return self._username
+
+
 class Authorizer:
 
     def __init__(self, username_grabber, password_grabber):
@@ -41,6 +57,23 @@ class Authorizer:
     def get_password(self):
         return self._password_grabber.get_password()
 
+def _get_gh_name(remote_name):
+    output = subprocess.check_output(['git', 'remote', '-v', 'show']).decode()
+    for line in output.strip().split('\n'):
+        name, url, _ = line.split()
+        if name == remote_name and 'github.com' in url:
+            return re.findall('\w+/\w+\.git', url)[0][:-4].split('/')
+
+    return (None, None)
+
+def _get_best_gh_name(username_grabber):
+    user, repo = _get_gh_name(username_grabber.get_username())
+    if user is None or repo is None:
+        user, repo = _get_gh_name('origin')
+        if user is None or repo is None:
+            # raise exception
+            pass
+    return user, repo
 
 def do_list_repos(args):
     username = args.user
@@ -49,30 +82,42 @@ def do_list_repos(args):
         print(repo.repo)
 
 def do_list_branches(args):
-    user_repo = args.user_repo
-    user, repo = user_repo.split('/')
+    ug = StoredUsernameGrabber()
+    if args.repo is None:
+        user, repo = _get_best_gh_name(ug)
+    else:
+        user, repo = args.repo.split('/')
     repo = ghlib.Repository(user, repo)
     for branch in repo.get_branch_list():
         print(branch.name)
 
 def do_fork(args):
-    user_repo = args.user_repo
-    user, reponame = user_repo.split('/')
-    repo = ghlib.Repository(user, reponame)
+    ug = StoredUsernameGrabber()
+    if args.repo is None:
+        user, repo = _get_best_gh_name(ug)
+    else:
+        user, repo = args.repo.split('/')
+    repo = ghlib.Repository(user, repo)
     repo.auth = auth
     newrep = repo.fork()
     newrep.dump()
 
 def do_list_pull_requests(args):
-    user_repo = args.user_repo
-    user, repo = user_repo.split('/')
+    ug = StoredUsernameGrabber()
+    if args.repo is None:
+        user, repo = _get_best_gh_name(ug)
+    else:
+        user, repo = args.repo.split('/')
     repo = ghlib.Repository(user, repo)
     for pr in repo.get_pull_request_list():
         print(pr.id, pr.title)
 
 def do_fetch_pull_request(args):
-    user_repo = args.user_repo
-    user, repo = user_repo.split('/')
+    ug = StoredUsernameGrabber()
+    if args.repo is None:
+        user, repo = _get_best_gh_name(ug)
+    else:
+        user, repo = args.repo.split('/')
     id = args.id
     repo = ghlib.Repository(user, repo)
     pr = repo.get_pull_request(id)
@@ -82,10 +127,9 @@ def do_fetch_pull_request(args):
     # git branch branchname user/branch
 
 def do_whoami(args):
-    path = os.path.expanduser('~/.gizzconfig')
     if args.user is None:
-        with open(path, 'r') as in_file:
-            print(in_file.readline().strip())
+        print(StoredUsernameGrabber().get_username())
     else:
+        path = os.path.expanduser('~/.gizzconfig')
         with open(path, 'w') as out:
             print(args.user, file=out)
