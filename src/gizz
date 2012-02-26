@@ -1,0 +1,33 @@
+#!/usr/bin/python3
+# -*-mode: Python; -*-
+
+import argparse
+import ghlib
+import gizzutils
+
+parser = argparse.ArgumentParser(prog='gizz')
+subparsers = parser.add_subparsers(help='sub-command help')
+
+cmd_list_repos = subparsers.add_parser('list-repos', help='a help')
+cmd_list_repos.add_argument('user', type=str, help='bar help')
+cmd_list_repos.set_defaults(func=gizzutils.do_list_repos)
+
+cmd_list_branches = subparsers.add_parser('list-branches', help='a help')
+cmd_list_branches.add_argument('user_repo', type=str, help='bar help')
+cmd_list_branches.set_defaults(func=gizzutils.do_list_branches)
+
+cmd_list_fork = subparsers.add_parser('fork', help='a help')
+cmd_list_fork.add_argument('user_repo', type=str, help='bar help')
+cmd_list_fork.set_defaults(func=gizzutils.do_fork)
+
+cmd_list_pr = subparsers.add_parser('list-pr', help='a help')
+cmd_list_pr.add_argument('user_repo', type=str, help='bar help')
+cmd_list_pr.set_defaults(func=gizzutils.do_list_pull_requests)
+
+cmd_fetch_pr = subparsers.add_parser('fetch-pr', help='a help')
+cmd_fetch_pr.add_argument('user_repo', type=str, help='bar help')
+cmd_fetch_pr.add_argument('id', type=int, help='bar help')
+cmd_fetch_pr.set_defaults(func=gizzutils.do_fetch_pull_request)
+
+args = parser.parse_args()
+args.func(args)
