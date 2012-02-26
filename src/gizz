@@ -29,5 +29,10 @@ cmd_fetch_pr.add_argument('user_repo', type=str, help='bar help')
 cmd_fetch_pr.add_argument('id', type=int, help='bar help')
 cmd_fetch_pr.set_defaults(func=gizzutils.do_fetch_pull_request)
 
+cmd_whoami = subparsers.add_parser('whoami', help='a help')
+cmd_whoami.add_argument('user', type=str, help='bar help',
+                        default=None, nargs='?')
+cmd_whoami.set_defaults(func=gizzutils.do_whoami)
+
 args = parser.parse_args()
 args.func(args)

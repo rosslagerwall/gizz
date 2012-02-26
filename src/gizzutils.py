@@ -1,5 +1,6 @@
 import getpass
 import ghlib
+import os.path
 
 class PasswordGrabber:
 
@@ -79,3 +80,12 @@ def do_fetch_pull_request(args):
     # git origin add user git_url
     # git fetch user
     # git branch branchname user/branch
+
+def do_whoami(args):
+    path = os.path.expanduser('~/.gizzconfig')
+    if args.user is None:
+        with open(path, 'r') as in_file:
+            print(in_file.readline().strip())
+    else:
+        with open(path, 'w') as out:
+            print(args.user, file=out)
