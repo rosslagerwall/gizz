@@ -1,5 +1,5 @@
 import getpass
-import ghlib
+import gizz.ghlib
 import os.path
 import re
 import subprocess
@@ -77,7 +77,7 @@ def _get_best_gh_name(username_grabber):
 
 def do_list_repos(args):
     username = args.user
-    user = ghlib.User(username)
+    user = gizz.ghlib.User(username)
     for repo in user.get_repo_list():
         print(repo.repo)
 
@@ -87,7 +87,7 @@ def do_list_branches(args):
         user, repo = _get_best_gh_name(ug)
     else:
         user, repo = args.repo.split('/')
-    repo = ghlib.Repository(user, repo)
+    repo = gizz.ghlib.Repository(user, repo)
     for branch in repo.get_branch_list():
         print(branch.name)
 
@@ -97,7 +97,7 @@ def do_fork(args):
         user, repo = _get_best_gh_name(ug)
     else:
         user, repo = args.repo.split('/')
-    repo = ghlib.Repository(user, repo)
+    repo = gizz.ghlib.Repository(user, repo)
     repo.auth = auth
     newrep = repo.fork()
     newrep.dump()
@@ -108,7 +108,7 @@ def do_list_pull_requests(args):
         user, repo = _get_best_gh_name(ug)
     else:
         user, repo = args.repo.split('/')
-    repo = ghlib.Repository(user, repo)
+    repo = gizz.ghlib.Repository(user, repo)
     for pr in repo.get_pull_request_list():
         print(pr.id, pr.title)
 
@@ -119,7 +119,7 @@ def do_fetch_pull_request(args):
     else:
         user, repo = args.repo.split('/')
     id = args.id
-    repo = ghlib.Repository(user, repo)
+    repo = gizz.ghlib.Repository(user, repo)
     pr = repo.get_pull_request(id)
 
     subprocess.call(['git', 'remote', 'add', pr.head_user,
