@@ -95,7 +95,7 @@ class Repository:
 
         pull_reqs = []
         for pull_req_data in pull_reqs_data:
-            pull_req = PullRequest(pull_req_data['number'],
+            pull_req = PullRequest(self.user, self, pull_req_data['number'],
                                    pull_req_data['title'],
                                    pull_req_data['body'])
             pull_reqs.append(pull_req)
@@ -110,7 +110,7 @@ class Repository:
         r.perform()
         pull_req_data = r.get_response()
 
-        pull_req = PullRequest(id,
+        pull_req = PullRequest(self.user, self, id,
                                pull_req_data['title'],
                                pull_req_data['body'])
 
@@ -153,7 +153,21 @@ class Branch:
 
 class PullRequest:
 
-    def __init__(self, id, title, body):
+    def __init__(self, base_user, repo, id, title, body):
+        self.base_user = base_user
+        self.repo = repo
         self.id = id
         self.title = title
         self.body = body
+
+        r = _Request('/repos/{user}/{repo}/pulls/{id}')
+        r.add_url_param('user', self.base_user)
+        r.add_url_param('repo', self.repo.repo)
+        r.add_url_param('id', self.id)
+        r.perform()
+        pull_data = r.get_response()
+        self.head_user = pull_data['head']['user']['login']
+        self.head_label = pull_data['head']['label']
+        self.head_ref = pull_data['head']['ref']
+        self.head_git_url = pull_data['head']['repo']['git_url']
+        self.base_ref = pull_data['base']['ref']

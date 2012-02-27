@@ -121,10 +121,16 @@ def do_fetch_pull_request(args):
     id = args.id
     repo = ghlib.Repository(user, repo)
     pr = repo.get_pull_request(id)
-    print(pr.id, pr.title)
-    # git origin add user git_url
-    # git fetch user
-    # git branch branchname user/branch
+
+    subprocess.call(['git', 'remote', 'add', pr.head_user,
+                     pr.head_git_url])
+    subprocess.call(['git', 'fetch', pr.head_user])
+    subprocess.call(['git', 'branch', pr.head_ref,
+                     '{}/{}'.format(pr.head_user, pr.head_ref)])
+
+    print("Created branch {} tracking {}/{}.".format(pr.head_ref, pr.head_user,
+                                                     pr.head_ref))
+    print("Merge {} into {}".format(pr.head_ref, pr.base_ref))
 
 def do_whoami(args):
     if args.user is None:
