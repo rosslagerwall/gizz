@@ -1,0 +1,54 @@
+gizz
+====
+
+What is it?
+-----------
+
+gizz provides a command-line interface to some parts of the GitHub API in a
+similar manner to the Launchpad plugin for Bazaar. The idea is to improve
+integration between Git and GitHub from the command-line in specifc areas such
+as handling pull requests and creating pull requests.
+
+The goal is for gizz to improve the efficiency of the GitHub workflow so that
+developers can spend less time on admin and more time hacking.
+
+gizz is short for GitHub Whizz.
+
+Requirements
+------------
+
+gizz requires Python 3.2+. No other libraries are required.
+
+Quick Start
+-----------
+
+[more here soon]
+
+Installation
+------------
+
+See the file called INSTALL for details on how to install gizz.
+
+Contributing
+------------
+
+Fork it on GitHub, hack away and then send a pull request (preferably using
+gizz). To run gizz in the source tree without having to install it first, use
+the PYTHONPATH environment variable:
+    $ PYTHONPATH=path/to/clone/directory bin/gizz -h
+
+Licensing
+---------
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+Please see the file called COPYING for more details.
+
+Latest Version
+--------------
+
+Details of the latest version can be found on the gizz project page at
+https://github.com/rosslagerwall/gizz.
