@@ -117,6 +117,22 @@ class Repository(LazyLoader):
 
         return branches
 
+    def get_tag_list(self):
+        r = _Request('/repos/{user}/{repo}/tags')
+        r.add_url_param('user', self.user.username)
+        r.add_url_param('repo', self.reponame)
+        r.perform()
+        tags_data = r.get_response()
+
+        tags = []
+        for tag_data in tags_data:
+            tag = Tag(self, tag_data['name'],
+                            tag_data['commit']['sha'],
+                            tag_data['tarball_url'])
+            tags.append(tag)
+
+        return tags
+
     def get_pull_request_list(self):
         r = _Request('/repos/{user}/{repo}/pulls')
         r.add_url_param('user', self.user.username)
@@ -182,6 +198,19 @@ class Branch:
     def dump(self):
         print(self.repo, self.name, self.sha)
         print(self.url)
+
+
+class Tag:
+
+    def __init__(self, repo, name, sha, tarball_url):
+        self.repo = repo
+        self.name = name
+        self.sha = sha
+        self.tarball_url = tarball_url
+
+    def dump(self):
+        print(self.repo, self.name, self.sha)
+        print(self.tarball_url)
 
 
 class PullRequest(LazyLoader):

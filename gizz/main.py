@@ -7,6 +7,8 @@ def get_command(subcommand, args):
         return Cmd_WhoAmI(args)
     elif subcommand == 'list-branches':
         return Cmd_ListBranches(args)
+    elif subcommand == 'list-tags':
+        return Cmd_ListTags(args)
     elif subcommand == 'fetch-pr':
         return Cmd_FetchPullRequest(args)
     elif subcommand == 'list-repos':
@@ -31,6 +33,10 @@ def run():
     cmd_list_branches = subparsers.add_parser('list-branches', help='a help')
     cmd_list_branches.add_argument('--repo', type=str,
                                    help='list branches of REPO')
+
+    cmd_list_tags = subparsers.add_parser('list-tags', help='a help')
+    cmd_list_tags.add_argument('--repo', type=str,
+                               help='list tags of REPO')
 
     cmd_list_fork = subparsers.add_parser('fork', help='a help')
     cmd_list_fork.add_argument('--repo', type=str,

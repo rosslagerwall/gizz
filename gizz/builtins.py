@@ -61,6 +61,22 @@ class Cmd_ListBranches(Cmd):
             print(branch.name)
 
 
+class Cmd_ListTags(Cmd):
+
+    def __init__(self, args):
+        Cmd.__init__(self)
+        self._arg_repo = args.repo
+
+    def run(self):
+        if self._arg_repo is None:
+            user, repo = self._get_best_gh_name()
+        else:
+            user, repo = self._arg_repo.split('/')
+        repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
+        for tag in repo.get_tag_list():
+            print(tag.name, tag.sha[:10])
+
+
 class Cmd_Fork(Cmd):
 
     def __init__(self, args):
