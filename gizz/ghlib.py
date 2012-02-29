@@ -42,8 +42,8 @@ class _Request:
 class LazyLoader:
 
     def __getattr__(self, name):
-        # the class doesn't have the attribute so load it from the
-        # remote store if not already loaded
+        # the class doesn't have the attribute so try and load it from the
+        # remote store
         self._load()
 
         return self.__getattribute__(name)
