@@ -38,10 +38,33 @@ class _Request:
         return json.loads(self._recv_data.decode())
 
 
-class User:
+class LazyLoader:
 
-    def __init__(self, user):
+    def __getattr__(self, name):
+        # the class doesn't have the attribute so load it from the
+        # remote store if not already loaded
+        self._load()
+
+        return self.__getattribute__(name)
+
+
+class User(LazyLoader):
+
+    def __init__(self, user, data=None):
         self.user = user
+        if data is not None:
+            self._load_from_data(data)
+
+    def _load_from_data(self, data):
+        self.name = data['name']
+        self.following = data['following']
+
+    def _load(self):
+        r = _Request('/users/{user}')
+        r.add_url_param('user', self.user)
+        r.perform()
+        data = r.get_response()
+        self._load_from_data(data)
 
     def get_repo_list(self):
         r = _Request('/users/{user}/repos')
@@ -56,19 +79,26 @@ class User:
             
         return repos
 
-class Repository:
+
+class Repository(LazyLoader):
 
     def __init__(self, user, repo, data=None):
         self.user = user
         self.repo = repo
-        if data is None:
-            r = _Request('/repos/{user}/{repo}')
-            r.add_url_param('user', self.user)
-            r.add_url_param('repo', self.repo)
-            r.perform()
-            data = r.get_response()
+        if data is not None:
+            self._load_from_data(data)
+
+    def _load_from_data(self, data):
         self.git_url = data['git_url']
         self.description = data['description']
+
+    def _load(self):
+        r = _Request('/repos/{user}/{repo}')
+        r.add_url_param('user', self.user)
+        r.add_url_param('repo', self.repo)
+        r.perform()
+        data = r.get_response()
+        self._load_from_data(data)
 
     def get_branch_list(self):
         r = _Request('/repos/{user}/{repo}/branches')
