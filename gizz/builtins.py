@@ -42,7 +42,7 @@ class Cmd_ListRepos(Cmd):
         else:
             user = gizz.ghlib.User(self._username)
         for repo in user.get_repo_list():
-            print(repo.repo)
+            print(repo.reponame)
 
 
 class Cmd_ListBranches(Cmd):
@@ -56,7 +56,7 @@ class Cmd_ListBranches(Cmd):
             user, repo = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
-        repo = gizz.ghlib.Repository(user, repo)
+        repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
         for branch in repo.get_branch_list():
             print(branch.name)
 
@@ -72,7 +72,7 @@ class Cmd_Fork(Cmd):
             user, repo = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
-        repo = gizz.ghlib.Repository(user, repo)
+        repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
         repo.auth = self._auth
         newrep = repo.fork()
         newrep.dump()
@@ -89,7 +89,7 @@ class Cmd_ListPullRequests(Cmd):
             user, repo = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
-        repo = gizz.ghlib.Repository(user, repo)
+        repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
         for pr in repo.get_pull_request_list():
             print(pr.id, pr.title)
 
@@ -106,11 +106,11 @@ class Cmd_FetchPullRequest(Cmd):
             user, repo = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
-        repo = gizz.ghlib.Repository(user, repo)
+        repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
         pr = repo.get_pull_request(self._id)
         pr.fetch()
         print("Created branch {} tracking {}/{}".format(pr.head_ref,
-                                                        pr.head_user,
+                                                        pr.head_user.username,
                                                         pr.head_ref))
         print("Merge {} into {}".format(pr.head_ref, pr.base_ref))
 

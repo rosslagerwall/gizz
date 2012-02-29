@@ -51,8 +51,8 @@ class LazyLoader:
 
 class User(LazyLoader):
 
-    def __init__(self, user, data=None):
-        self.user = user
+    def __init__(self, username, data=None):
+        self.username = username
         if data is not None:
             self._load_from_data(data)
 
@@ -62,20 +62,20 @@ class User(LazyLoader):
 
     def _load(self):
         r = _Request('/users/{user}')
-        r.add_url_param('user', self.user)
+        r.add_url_param('user', self.username)
         r.perform()
         data = r.get_response()
         self._load_from_data(data)
 
     def get_repo_list(self):
         r = _Request('/users/{user}/repos')
-        r.add_url_param('user', self.user)
+        r.add_url_param('user', self.username)
         r.perform()
         repos_data = r.get_response()
 
         repos = []
         for repo_data in repos_data:
-            repo = Repository(self.user, repo_data['name'], repo_data)
+            repo = Repository(self, repo_data['name'], repo_data)
             repos.append(repo)
             
         return repos
@@ -83,9 +83,9 @@ class User(LazyLoader):
 
 class Repository(LazyLoader):
 
-    def __init__(self, user, repo, data=None):
+    def __init__(self, user, reponame, data=None):
         self.user = user
-        self.repo = repo
+        self.reponame = reponame
         if data is not None:
             self._load_from_data(data)
 
@@ -95,16 +95,16 @@ class Repository(LazyLoader):
 
     def _load(self):
         r = _Request('/repos/{user}/{repo}')
-        r.add_url_param('user', self.user)
-        r.add_url_param('repo', self.repo)
+        r.add_url_param('user', self.user.username)
+        r.add_url_param('repo', self.reponame)
         r.perform()
         data = r.get_response()
         self._load_from_data(data)
 
     def get_branch_list(self):
         r = _Request('/repos/{user}/{repo}/branches')
-        r.add_url_param('user', self.user)
-        r.add_url_param('repo', self.repo)
+        r.add_url_param('user', self.user.username)
+        r.add_url_param('repo', self.reponame)
         r.perform()
         branches_data = r.get_response()
 
@@ -119,8 +119,8 @@ class Repository(LazyLoader):
 
     def get_pull_request_list(self):
         r = _Request('/repos/{user}/{repo}/pulls')
-        r.add_url_param('user', self.user)
-        r.add_url_param('repo', self.repo)
+        r.add_url_param('user', self.user.username)
+        r.add_url_param('repo', self.reponame)
         r.perform()
         pull_reqs_data = r.get_response()
 
@@ -135,8 +135,8 @@ class Repository(LazyLoader):
 
     def get_pull_request(self, id):
         r = _Request('/repos/{user}/{repo}/pulls/{id}')
-        r.add_url_param('user', self.user)
-        r.add_url_param('repo', self.repo)
+        r.add_url_param('user', self.user.username)
+        r.add_url_param('repo', self.reponame)
         r.add_url_param('id', id)
         r.perform()
         pull_req_data = r.get_response()
@@ -149,22 +149,24 @@ class Repository(LazyLoader):
 
     def fork(self):
         r = _Request('/repos/{user}/{repo}/forks')
-        r.add_url_param('user', self.user)
-        r.add_url_param('repo', self.repo)
+        r.add_url_param('user', self.user.username)
+        r.add_url_param('repo', self.reponame)
         r.method = 'POST'
         r.requires_auth = True
         r.username = self.auth.get_username()
         r.password = self.auth.get_password()
         r.perform()
         repo_data = r.get_response()
-        return Repository(self.auth.get_username(), self.repo, data=repo_data)
+        return Repository(Users(self.auth.get_username()), self.reponame,
+                          data=repo_data)
 
     def __str__(self):
-        return "{user}/{repo}".format(user=self.user, repo=self.repo)
+        return "{user}/{repo}".format(user=self.user.username,
+                                      repo=self.reponame)
 
     def dump(self):
-        print("{user}/{repo} => {git_url}".format(user=self.user,
-                                                  repo=self.repo,
+        print("{user}/{repo} => {git_url}".format(user=self.user.username,
+                                                  repo=self.reponame,
                                                   git_url=self.git_url))
         print(self.description)
 
@@ -182,29 +184,33 @@ class Branch:
         print(self.url)
 
 
-class PullRequest:
+class PullRequest(LazyLoader):
 
-    def __init__(self, base_user, repo, id, title, body):
+    def __init__(self, base_user, repo, id, title, body, data=None):
         self.base_user = base_user
         self.repo = repo
         self.id = id
         self.title = title
         self.body = body
 
+    def _load_from_data(self, data):
+        self.head_user = User(data['head']['user']['login'])
+        self.head_label = data['head']['label']
+        self.head_ref = data['head']['ref']
+        self.head_git_url = data['head']['repo']['git_url']
+        self.base_ref = data['base']['ref']
+
+    def _load(self):
         r = _Request('/repos/{user}/{repo}/pulls/{id}')
-        r.add_url_param('user', self.base_user)
-        r.add_url_param('repo', self.repo.repo)
+        r.add_url_param('user', self.base_user.username)
+        r.add_url_param('repo', self.repo.reponame)
         r.add_url_param('id', self.id)
         r.perform()
-        pull_data = r.get_response()
-        self.head_user = pull_data['head']['user']['login']
-        self.head_label = pull_data['head']['label']
-        self.head_ref = pull_data['head']['ref']
-        self.head_git_url = pull_data['head']['repo']['git_url']
-        self.base_ref = pull_data['base']['ref']
+        data = r.get_response()
+        self._load_from_data(data)
 
     def fetch(self):
-        git_run('remote', 'add', self.head_user, self.head_git_url)
-        git_run('fetch', self.head_user)
+        git_run('remote', 'add', self.head_user.username, self.head_git_url)
+        git_run('fetch', self.head_user.username)
         git_run('branch', self.head_ref,
-                '{}/{}'.format(self.head_user, self.head_ref))
+                '{}/{}'.format(self.head_user.username, self.head_ref))
