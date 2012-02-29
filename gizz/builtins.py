@@ -108,12 +108,7 @@ class Cmd_FetchPullRequest(Cmd):
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(user, repo)
         pr = repo.get_pull_request(self._id)
-
-        git_run('remote', 'add', pr.head_user, pr.head_git_url)
-        git_run('fetch', pr.head_user)
-        git_run('branch', pr.head_ref,
-                '{}/{}'.format(pr.head_user, pr.head_ref))
-
+        pr.fetch()
         print("Created branch {} tracking {}/{}".format(pr.head_ref,
                                                         pr.head_user,
                                                         pr.head_ref))

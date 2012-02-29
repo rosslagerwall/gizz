@@ -2,6 +2,7 @@ import json
 import urllib.request
 import http.client
 import base64
+from gizz.utils import *
 
 HOSTNAME = 'api.github.com'
 
@@ -201,3 +202,9 @@ class PullRequest:
         self.head_ref = pull_data['head']['ref']
         self.head_git_url = pull_data['head']['repo']['git_url']
         self.base_ref = pull_data['base']['ref']
+
+    def fetch(self):
+        git_run('remote', 'add', self.head_user, self.head_git_url)
+        git_run('fetch', self.head_user)
+        git_run('branch', self.head_ref,
+                '{}/{}'.format(self.head_user, self.head_ref))
