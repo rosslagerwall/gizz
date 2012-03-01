@@ -116,6 +116,7 @@ class Cmd_FetchPullRequest(Cmd):
         Cmd.__init__(self)
         self._arg_repo = args.repo
         self._id = args.id
+        self._fetch_all = args.id is None
 
     def run(self):
         if self._arg_repo is None:
@@ -123,7 +124,14 @@ class Cmd_FetchPullRequest(Cmd):
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
-        pr = repo.get_pull_request(self._id)
+        if self._fetch_all:
+            for pr in repo.get_pull_request_list():
+                self._fetch_one_pull_request(pr)
+        else:
+            pr = repo.get_pull_request(self._id)
+            self._fetch_one_pull_request(pr)
+
+    def _fetch_one_pull_request(self, pr):
         pr.fetch()
         print("Created branch {} tracking {}/{}".format(pr.head_ref,
                                                         pr.head_user.username,

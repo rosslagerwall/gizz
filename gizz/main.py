@@ -51,7 +51,8 @@ def run():
                                          'local branch')
     cmd_fetch_pr.add_argument('--repo', type=str,
                               help='fetch request from REPO')
-    cmd_fetch_pr.add_argument('id', type=int, help='fetch request #id')
+    cmd_fetch_pr.add_argument('id', type=int, help='fetch request #id',
+                              default=None, nargs='?')
 
     cmd_whoami = subparsers.add_parser('whoami',
                                        help='get or set your GitHub username')
