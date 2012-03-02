@@ -132,11 +132,11 @@ class Cmd_FetchPullRequest(Cmd):
             self._fetch_one_pull_request(pr)
 
     def _fetch_one_pull_request(self, pr):
-        pr.fetch()
-        print("Created branch {} tracking {}/{}".format(pr.head_ref,
+        fetched_branch = pr.fetch()
+        print("Created branch {} tracking {}/{}".format(fetched_branch,
                                                         pr.head_user.username,
                                                         pr.head_ref))
-        print("Merge {} into {}".format(pr.head_ref, pr.base_ref))
+        print("Merge {} into {}".format(fetched_branch, pr.base_ref))
 
 
 class Cmd_WhoAmI(Cmd):

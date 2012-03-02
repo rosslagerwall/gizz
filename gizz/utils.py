@@ -66,4 +66,4 @@ def git_run(*args):
     cmdline = ['git']
     cmdline.extend(args)
     with open(os.devnull, 'wb') as null:
-        subprocess.call(cmdline, stdout=null, stderr=null)
+        subprocess.check_call(cmdline, stdout=null, stderr=null)

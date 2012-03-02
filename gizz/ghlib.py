@@ -1,3 +1,4 @@
+import sys
 import json
 import urllib.request
 import http.client
@@ -239,7 +240,22 @@ class PullRequest(LazyLoader):
         self._load_from_data(data)
 
     def fetch(self):
-        git_run('remote', 'add', self.head_user.username, self.head_git_url)
+        try:
+            git_run('remote', 'add', self.head_user.username, self.head_git_url)
+        except subprocess.CalledProcessError:
+            # ignore if username already exists
+            pass
         git_run('fetch', self.head_user.username)
-        git_run('branch', self.head_ref,
-                '{}/{}'.format(self.head_user.username, self.head_ref))
+        try:
+            git_run('branch', self.head_ref,
+                    '{}/{}'.format(self.head_user.username, self.head_ref))
+            return self.head_ref
+        except subprocess.CalledProcessError:
+            try:
+                branch_name = self.head_user.username + '-' + self.head_ref
+                git_run('branch', branch_name,
+                        '{}/{}'.format(self.head_user.username, self.head_ref))
+                return branch_name
+            except subprocess.CalledProcessError:
+                print(self.head_ref, "already exists!", file=sys.stderr)
+                raise
