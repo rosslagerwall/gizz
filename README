@@ -14,6 +14,9 @@ developers can spend less time on admin and more time hacking.
 
 gizz is short for GitHub Whizz.
 
+Yes, this is somewhat like hub (http://defunkt.io/hub/) although I had no
+knowledge of hub when starting this project.
+
 Requirements
 ------------
 
@@ -22,7 +25,17 @@ gizz requires Python 3.2+. No other libraries are required.
 Quick Start
 -----------
 
-[more here soon]
+Fetching a pull request as a local branch:
+>>> $ gizz list-pr
+>>> 12 => Improve foo command
+>>> 27 => Fix bug in bar
+>>> $ gizz fetch-pr 27
+>>> Created branch bug-bar tracking baz/gizz
+>>> Merge bug-bar into master
+>>> $ git checkout bug-bar # test and verify correctness
+>>> $ git checkout master
+>>> $ git merge bug-bar # the bug fix has now been merged into mainline
+>>> $ git branch -d bug-bar # can now remove the local bug-fix branch
 
 Installation
 ------------
