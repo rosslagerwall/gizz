@@ -111,9 +111,8 @@ class Repository(LazyLoader):
 
         branches = []
         for branch_data in branches_data:
-            branch = Branch(self, branch_data['name'],
-                            branch_data['commit']['sha'],
-                            branch_data['commit']['url'])
+            branch = Branch(self, branch_data['name'])
+            branch.sha = branch_data['commit']['sha']
             branches.append(branch)
 
         return branches
@@ -143,7 +142,7 @@ class Repository(LazyLoader):
 
         pull_reqs = []
         for pull_req_data in pull_reqs_data:
-            pull_req = PullRequest(self.user, self, pull_req_data['number'],
+            pull_req = PullRequest(self, pull_req_data['number'],
                                    pull_req_data['title'],
                                    pull_req_data['body'])
             pull_reqs.append(pull_req)
@@ -151,17 +150,7 @@ class Repository(LazyLoader):
         return pull_reqs
 
     def get_pull_request(self, id):
-        r = _Request('/repos/{user}/{repo}/pulls/{id}')
-        r.add_url_param('user', self.user.username)
-        r.add_url_param('repo', self.reponame)
-        r.add_url_param('id', id)
-        r.perform()
-        pull_req_data = r.get_response()
-
-        pull_req = PullRequest(self.user, self, id,
-                               pull_req_data['title'],
-                               pull_req_data['body'])
-
+        pull_req = PullRequest(self, id)
         return pull_req
 
     def fork(self):
@@ -190,15 +179,15 @@ class Repository(LazyLoader):
 
 class Branch:
 
-    def __init__(self, repo, name, sha, url):
+    def __init__(self, repo, name):
         self.repo = repo
         self.name = name
-        self.sha = sha
-        self.url = url
 
     def dump(self):
-        print(self.repo, self.name, self.sha)
-        print(self.url)
+        sha = self.sha if hasattr(self, 'sha') else ''
+        print(self.repo, self.name, sha)
+        if hasattr(self, 'git_url'):
+            print(self.git_url)
 
 
 class Tag:
@@ -216,23 +205,30 @@ class Tag:
 
 class PullRequest(LazyLoader):
 
-    def __init__(self, base_user, repo, id, title, body, data=None):
-        self.base_user = base_user
+    def __init__(self, repo, id, title=None, body=None):
         self.repo = repo
         self.id = id
-        self.title = title
-        self.body = body
+        if title is not None:
+            self.title = title
+        if body is not None:
+            self.body = body
 
     def _load_from_data(self, data):
-        self.head_user = User(data['head']['user']['login'])
-        self.head_label = data['head']['label']
-        self.head_ref = data['head']['ref']
-        self.head_git_url = data['head']['repo']['git_url']
-        self.base_ref = data['base']['ref']
+        self.title = data['title']
+        self.body = data['body']
+        self.create_date = data['created_at']
+
+        head_repo = Repository(User(data['head']['user']['login']),
+                               data['head']['repo']['name'])
+        self.head = Branch(head_repo, data['head']['ref'])
+        self.head.sha = data['head']['sha']
+        self.head.git_url = data['head']['repo']['git_url']
+        self.base = Branch(self.repo, data['base']['ref'])
+        self.base.sha = data['base']['sha']
 
     def _load(self):
         r = _Request('/repos/{user}/{repo}/pulls/{id}')
-        r.add_url_param('user', self.base_user.username)
+        r.add_url_param('user', self.repo.user.username)
         r.add_url_param('repo', self.repo.reponame)
         r.add_url_param('id', self.id)
         r.perform()
@@ -240,22 +236,23 @@ class PullRequest(LazyLoader):
         self._load_from_data(data)
 
     def fetch(self):
+        username = self.head.repo.user.username
         try:
-            git_run('remote', 'add', self.head_user.username, self.head_git_url)
+            git_run('remote', 'add', username, self.head.git_url)
         except subprocess.CalledProcessError:
             # ignore if username already exists
             pass
-        git_run('fetch', self.head_user.username)
+        git_run('fetch', username)
         try:
-            git_run('branch', self.head_ref,
-                    '{}/{}'.format(self.head_user.username, self.head_ref))
-            return self.head_ref
+            git_run('branch', self.head.name,
+                    '{}/{}'.format(username, self.head.name))
+            return self.head.name
         except subprocess.CalledProcessError:
             try:
-                branch_name = self.head_user.username + '-' + self.head_ref
+                branch_name = username + '-' + self.head.name
                 git_run('branch', branch_name,
-                        '{}/{}'.format(self.head_user.username, self.head_ref))
+                        '{}/{}'.format(username, self.head.name))
                 return branch_name
             except subprocess.CalledProcessError:
-                print(self.head_ref, "already exists!", file=sys.stderr)
+                print(self.head.name, "already exists!", file=sys.stderr)
                 raise

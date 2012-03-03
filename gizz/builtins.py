@@ -99,6 +99,21 @@ class Cmd_ListPullRequests(Cmd):
     def __init__(self, args):
         Cmd.__init__(self)
         self._arg_repo = args.repo
+        self._verbose = args.verbose
+        self._id = args.id
+
+    def _print(self, pr, verbose=True):
+        if verbose:
+            print("From:", pr.head.repo.user.username)
+            print("Remote URL:", pr.head.git_url)
+            print("Date:", pr.create_date)
+            print("Id:", pr.id)
+            print("Subject:", pr.title)
+            print("Merge {} at {}\n   to {} at {}".format(
+                    pr.head.name, pr.head.sha, pr.base.name, pr.base.sha))
+            print(pr.body.strip())
+        else:
+            print(pr.id, '=>', pr.title)
 
     def run(self):
         if self._arg_repo is None:
@@ -106,9 +121,15 @@ class Cmd_ListPullRequests(Cmd):
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
-        for pr in repo.get_pull_request_list():
-            print(pr.id, pr.title)
-
+        if self._id:
+            pr = repo.get_pull_request(self._id)
+            self._print(pr)
+        else:
+            pr_list = repo.get_pull_request_list()
+            for i, pr in enumerate(pr_list):
+                if self._verbose and i != 0:
+                    print('--')
+                self._print(pr, self._verbose)
 
 class Cmd_FetchPullRequest(Cmd):
 
@@ -133,10 +154,11 @@ class Cmd_FetchPullRequest(Cmd):
 
     def _fetch_one_pull_request(self, pr):
         fetched_branch = pr.fetch()
+        username = pr.head.repo.user.username
         print("Created branch {} tracking {}/{}".format(fetched_branch,
-                                                        pr.head_user.username,
-                                                        pr.head_ref))
-        print("Merge {} into {}".format(fetched_branch, pr.base_ref))
+                                                        username,
+                                                        pr.head.name))
+        print("Merge {} into {}".format(fetched_branch, pr.base.name))
 
 
 class Cmd_WhoAmI(Cmd):
