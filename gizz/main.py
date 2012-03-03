@@ -38,8 +38,11 @@ def run():
     cmd_list_tags.add_argument('--repo', type=str,
                                help='list tags of REPO')
 
-    cmd_list_fork = subparsers.add_parser('fork', help='a help')
-    cmd_list_fork.add_argument('--repo', type=str,
+    cmd_fork = subparsers.add_parser('fork', help='a help')
+    cmd_fork.add_argument('-n', '--no-add',
+                          help="don't add new repository as a remote",
+                          action='store_true')
+    cmd_fork.add_argument('--repo', type=str,
                                help='fork REPO')
 
     cmd_list_pr = subparsers.add_parser('list-pr', help='a help')

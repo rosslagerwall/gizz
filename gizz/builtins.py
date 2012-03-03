@@ -82,6 +82,7 @@ class Cmd_Fork(Cmd):
     def __init__(self, args):
         Cmd.__init__(self)
         self._arg_repo = args.repo
+        self._no_add = args.no_add
 
     def run(self):
         if self._arg_repo is None:
@@ -92,7 +93,9 @@ class Cmd_Fork(Cmd):
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
         repo.auth = self._auth
-        repo.fork()
+        new_repo = repo.fork()
+        if self._arg_repo is None and not self._no_add:
+            new_repo.add_as_remote()
 
 
 class Cmd_ListPullRequests(Cmd):

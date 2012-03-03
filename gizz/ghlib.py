@@ -92,6 +92,7 @@ class Repository(LazyLoader):
 
     def _load_from_data(self, data):
         self.git_url = data['git_url']
+        self.ssh_url = data['ssh_url']
         self.description = data['description']
 
     def _load(self):
@@ -165,6 +166,9 @@ class Repository(LazyLoader):
         repo_data = r.get_response()
         return Repository(User(self.auth.get_username()), self.reponame,
                           data=repo_data)
+
+    def add_as_remote(self):
+        git_run('remote', 'add', self.user.username, self.ssh_url)
 
     def __str__(self):
         return "{user}/{repo}".format(user=self.user.username,
