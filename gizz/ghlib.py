@@ -163,7 +163,7 @@ class Repository(LazyLoader):
         r.password = self.auth.get_password()
         r.perform()
         repo_data = r.get_response()
-        return Repository(Users(self.auth.get_username()), self.reponame,
+        return Repository(User(self.auth.get_username()), self.reponame,
                           data=repo_data)
 
     def __str__(self):

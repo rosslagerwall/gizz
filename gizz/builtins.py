@@ -85,13 +85,14 @@ class Cmd_Fork(Cmd):
 
     def run(self):
         if self._arg_repo is None:
-            user, repo = self._get_best_gh_name()
+            user, repo = self._get_gh_name('origin')
+            # TODO fail if user already owns the repo
+            # TODO fail if None, None is returned
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
         repo.auth = self._auth
-        newrep = repo.fork()
-        newrep.dump()
+        repo.fork()
 
 
 class Cmd_ListPullRequests(Cmd):
