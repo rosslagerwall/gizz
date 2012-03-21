@@ -173,7 +173,10 @@ class Cmd_WhoAmI(Cmd):
 
     def run(self):
         if self._user is None:
-            print(self._auth.get_username())
+            try:
+                print(self._auth.get_username())
+            except UnknownUserException:
+                print("Unknown user: set your GitHub username with gizz whoami")
         else:
             path = os.path.expanduser('~/.gizzconfig')
             with open(path, 'w') as out:

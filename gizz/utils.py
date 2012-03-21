@@ -37,8 +37,14 @@ class StoredUsernameGrabber:
 
     def get_username(self):
         if self._username is None:
-            with open(self._path, 'r') as in_file:
-                self._username = in_file.readline().strip()
+            try:
+                with open(self._path, 'r') as in_file:
+                    self._username = in_file.readline().strip()
+            except IOError as e:
+                if e.errno == 2:
+                    raise UnknownUserException()
+                else:
+                    raise
 
         return self._username
 
@@ -54,6 +60,15 @@ class Authorizer:
 
     def get_password(self):
         return self._password_grabber.get_password()
+
+
+class UnknownUserException(Exception):
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return 'unknown user'
 
 
 def git_system(*args):
