@@ -1,6 +1,7 @@
 import getpass
 import os
 import subprocess
+import tempfile
 
 class PasswordGrabber:
 
@@ -69,6 +70,46 @@ class UnknownUserException(Exception):
 
     def __str__(self):
         return 'unknown user'
+
+
+class MessageGetter:
+
+    def __init__(self):
+        self._f = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        self._f.write("\n/// ALL LINES BELOW ARE IGNORED\n")
+
+    def add_line(self, line):
+        self._f.writeline(line)
+
+    def _parse(self, s):
+        s = s.split("/// ALL LINES BELOW ARE IGNORED")
+        if len(s) == 1:
+            return s
+        else:
+            return s[0].strip() + "\n"
+
+    def edit(self):
+        self._f.close()
+        with subprocess.Popen(["nano", self._f.name]) as p:
+            p.wait()
+
+        with open(self._f.name, 'r') as f:
+            result = f.read()
+
+        os.unlink(self._f.name)
+        return self._parse(result)
+
+class TitledMessageGetter(MessageGetter):
+
+    def __init__(self):
+        MessageGetter.__init__(self)
+
+    def _parse(self, s):
+        s = MessageGetter._parse(self, s)
+        s = s.split("\n")
+        title = s[0].strip()
+        body = "\n".join(s[1:]).strip() + "\n"
+        return title, body
 
 
 def git_system(*args):
