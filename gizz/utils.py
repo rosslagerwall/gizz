@@ -76,10 +76,10 @@ class MessageGetter:
 
     def __init__(self):
         self._f = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        self._f.write("\n/// ALL LINES BELOW ARE IGNORED\n")
+        self._f.write("\n/// ALL LINES BELOW ARE IGNORED\n\n")
 
     def add_line(self, line):
-        self._f.writeline(line)
+        self._f.write(line + "\n")
 
     def _parse(self, s):
         s = s.split("/// ALL LINES BELOW ARE IGNORED")
@@ -103,12 +103,15 @@ class TitledMessageGetter(MessageGetter):
 
     def __init__(self):
         MessageGetter.__init__(self)
+        self._f.write("/// FIRST LINE SHOULD CONTAIN THE TITLE\n")
+        self._f.write("/// SUBSEQUENT LINES SHOULD CONTAIN THE BODY\n\n")
 
     def _parse(self, s):
         s = MessageGetter._parse(self, s)
         s = s.split("\n")
         title = s[0].strip()
-        body = "\n".join(s[1:]).strip() + "\n"
+        body = "\n".join(s[1:]).strip()
+        body += '' if body == '' else "\n"
         return title, body
 
 
