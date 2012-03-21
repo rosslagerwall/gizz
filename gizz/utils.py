@@ -99,6 +99,7 @@ class MessageGetter:
         os.unlink(self._f.name)
         return self._parse(result)
 
+
 class TitledMessageGetter(MessageGetter):
 
     def __init__(self):
