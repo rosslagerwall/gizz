@@ -193,12 +193,46 @@ class Cmd_RequestPull(Cmd):
         self._head = args.head
         self._base = args.base
 
-    def run(self):
+    def _get_repos_from_parent(self, user, reponame):
+        head_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
+
         if self._arg_repo is None:
-            # get parent from GH
-            pass
+            base_repo = head_repo.parent
+        else:
+            u, r = self._arg_repo.split('/')
+            base_repo = gizz.ghlib.Repository(gizz.ghlib.User(u), r)
+        base_repo.auth = self._auth
+
+        return head_repo, base_repo
+
+    def _get_repos_fork(self, user, reponame):
+        if self._arg_repo is None:
+            base_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
         else:
             user, reponame = self._arg_repo.split('/')
+            base_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
+        base_repo.auth = self._auth
+
+        head_repo = base_repo.fork()
+        head_repo.add_as_remote()
+
+        return head_repo, base_repo
+
+    def _get_repos_from_remote(self, remote_origin, remote_username):
+        if self._arg_repo is None:
+            base_repo = gizz.ghlib.Repository(gizz.ghlib.User(remote_origin[0]),
+                                              remote_origin[1])
+        else:
+            user, reponame = self._arg_repo.split('/')
+            base_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
+        base_repo.auth = self._auth
+
+        head_repo = gizz.ghlib.Repository(
+            gizz.ghlib.User(remote_username[0]), remote_username[1])
+
+        return head_repo, base_repo
+
+    def run(self):
         if self._head is None:
             output = git_system('branch')
             for line in output.split("\n"):
@@ -207,29 +241,30 @@ class Cmd_RequestPull(Cmd):
         else:
             head = self._head
 
-        # base repo is repo at which the pull request is aimed
-        base_repo = gizz.ghlib.Repository(
-            gizz.ghlib.User(user), reponame)
-        base_repo.auth = self._auth
-
+        # figure out what the base and head repos are
         # if the user does not have a Git remote either as origin or <username>
         # which is a personal GitHub repo, fork the base repo to get one
         auth_username = self._auth.get_username()
-        rem_user, rem_repo, rem_name = self._get_best_gh_name()
-        if auth_username == rem_user:
-            head_repo = gizz.ghlib.Repository(
-                gizz.ghlib.User(auth_username), reponame)
+        remote_origin = self._get_gh_name('origin')
+        remote_username = self._get_gh_name(auth_username)
+        if remote_origin[0] == auth_username:
+            head_repo, base_repo = self._get_repos_from_parent(*remote_origin)
+            push_name = 'origin'
+        elif remote_username == (None, None):
+            head_repo, base_repo = self._get_repos_fork(*remote_origin)
+            push_name = auth_username
+        elif remote_username[0] == auth_username:
+            head_repo, base_repo = self._get_repos_from_remote(remote_origin,
+                                                               remote_username)
+            push_name = auth_username
         else:
-            rem_name = auth_username
-            head_repo = base_repo.fork()
-            head_repo.add_as_remote()
+            # TODO error
+            pass
 
         # attempt to push the local branch to the remote repo
-        git_run('push', rem_name, head)
+        git_run('push', push_name, head)
 
-        # do pull request
-        print("pull req from {} to {} {}".format(head, base_repo, self._base))
-
+        # get the title and body for the pr
         m = TitledMessageGetter()
         title, body = m.edit()
 

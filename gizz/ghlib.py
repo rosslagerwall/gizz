@@ -97,6 +97,10 @@ class Repository(LazyLoader):
         self.git_url = data['git_url']
         self.ssh_url = data['ssh_url']
         self.description = data['description']
+        if 'parent' in data:
+            u = User(data['parent']['owner']['login'])
+            self.parent = Repository(u, data['parent']['name'], data['parent'])
+            
 
     def _load(self):
         r = _Request('/repos/{user}/{repo}')
