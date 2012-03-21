@@ -19,6 +19,9 @@ class _Request:
     def add_url_param(self, key, param):
         self._url_params[key] = param
 
+    def set_post_data(self, post_object):
+        self.post_object = post_object
+
     def perform(self):
         if self.post_object is None:
             json_data = None
@@ -186,6 +189,23 @@ class Branch:
     def __init__(self, repo, name):
         self.repo = repo
         self.name = name
+
+    def create_pull_request(self, title, body, source):
+        post_data = {'title': title,
+                     'body': body,
+                     'head': '{}:{}'.format(source.repo.user.username,
+                                            source.name),
+                     'base': self.name};
+        r = _Request('/repos/{user}/{repo}/pulls')
+        r.set_post_data(post_data)
+        r.add_url_param('user', self.repo.user.username)
+        r.add_url_param('repo', self.repo.reponame)
+        r.method = 'POST'
+        r.requires_auth = True
+        r.username = self.repo.auth.get_username()
+        r.password = self.repo.auth.get_password()
+        r.perform()
+        repo_data = r.get_response()
 
     def dump(self):
         sha = self.sha if hasattr(self, 'sha') else ''

@@ -22,12 +22,14 @@ class Cmd:
 
     def _get_best_gh_name(self):
         user, repo = self._get_gh_name(self._auth.get_username())
+        remote_name = self._auth.get_username()
         if user is None or repo is None:
             user, repo = self._get_gh_name('origin')
+            remote_name = 'origin'
             if user is None or repo is None:
                 # raise exception
                 pass
-        return user, repo
+        return user, repo, remote_name
 
 
 class Cmd_ListRepos(Cmd):
@@ -53,7 +55,7 @@ class Cmd_ListBranches(Cmd):
 
     def run(self):
         if self._arg_repo is None:
-            user, repo = self._get_best_gh_name()
+            user, repo, _ = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
@@ -69,7 +71,7 @@ class Cmd_ListTags(Cmd):
 
     def run(self):
         if self._arg_repo is None:
-            user, repo = self._get_best_gh_name()
+            user, repo, _ = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
@@ -121,7 +123,7 @@ class Cmd_ListPullRequests(Cmd):
 
     def run(self):
         if self._arg_repo is None:
-            user, repo = self._get_best_gh_name()
+            user, repo, _ = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
@@ -145,7 +147,7 @@ class Cmd_FetchPullRequest(Cmd):
 
     def run(self):
         if self._arg_repo is None:
-            user, repo = self._get_best_gh_name()
+            user, repo, _ = self._get_best_gh_name()
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
@@ -181,3 +183,56 @@ class Cmd_WhoAmI(Cmd):
             path = os.path.expanduser('~/.gizzconfig')
             with open(path, 'w') as out:
                 print(self._user, file=out)
+
+
+class Cmd_RequestPull(Cmd):
+
+    def __init__(self, args):
+        Cmd.__init__(self)
+        self._arg_repo = args.repo
+        self._head = args.head
+        self._base = args.base
+
+    def run(self):
+        if self._arg_repo is None:
+            # get parent from GH
+            pass
+        else:
+            user, reponame = self._arg_repo.split('/')
+        if self._head is None:
+            output = git_system('branch')
+            for line in output.split("\n"):
+                if line.startswith('*'):
+                    head = line[2:]
+        else:
+            head = self._head
+
+        # base repo is repo at which the pull request is aimed
+        base_repo = gizz.ghlib.Repository(
+            gizz.ghlib.User(user), reponame)
+        base_repo.auth = self._auth
+
+        # if the user does not have a Git remote either as origin or <username>
+        # which is a personal GitHub repo, fork the base repo to get one
+        auth_username = self._auth.get_username()
+        rem_user, rem_repo, rem_name = self._get_best_gh_name()
+        if auth_username == rem_user:
+            head_repo = gizz.ghlib.Repository(
+                gizz.ghlib.User(auth_username), reponame)
+        else:
+            rem_name = auth_username
+            head_repo = base_repo.fork()
+            head_repo.add_as_remote()
+
+        # attempt to push the local branch to the remote repo
+        git_run('push', rem_name, head)
+
+        # do pull request
+        print("pull req from {} to {} {}".format(head, base_repo, self._base))
+
+        m = TitledMessageGetter()
+        title, body = m.edit()
+
+        source = gizz.ghlib.Branch(head_repo, head)
+        target = gizz.ghlib.Branch(base_repo, self._base)
+        target.create_pull_request(title, body, source)

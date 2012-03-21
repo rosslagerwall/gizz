@@ -17,6 +17,8 @@ def get_command(subcommand, args):
         return Cmd_ListPullRequests(args)
     elif subcommand == 'fork':
         return Cmd_Fork(args)
+    elif subcommand == 'request-pull':
+        return Cmd_RequestPull(args)
     else:
         pass
         # TODO
@@ -65,6 +67,15 @@ def run():
                                        help='get or set your GitHub username')
     cmd_whoami.add_argument('user', type=str, help='set username to user',
                             default=None, nargs='?')
+
+    cmd_req_pull = subparsers.add_parser('request-pull',
+                                         help='create a pull request on GitHub')
+    cmd_req_pull.add_argument('--repo', type=str,
+                              help='send request to REPO')
+    cmd_req_pull.add_argument('head', type=str, help='local branch',
+                              default=None, nargs='?')
+    cmd_req_pull.add_argument('base', type=str, help='remote branch',
+                              default='master', nargs='?')
 
     args = parser.parse_args()
     command = get_command(args.subcommand, args)
