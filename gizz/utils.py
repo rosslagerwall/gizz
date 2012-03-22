@@ -106,7 +106,8 @@ class MessageGetter:
 
     def edit(self):
         self._f.close()
-        with subprocess.Popen(["nano", self._f.name]) as p:
+        editor = os.environ['EDITOR'] if 'EDITOR' in os.environ else 'nano'
+        with subprocess.Popen([editor, self._f.name]) as p:
             p.wait()
 
         with open(self._f.name, 'r') as f:
