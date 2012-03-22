@@ -37,10 +37,37 @@ Fetching a pull request as a local branch:
 >>> $ git merge bug-bar # the bug fix has now been merged into mainline
 >>> $ git branch -d bug-bar # can now remove the local bug-fix branch
 
+Opening a pull request without forking the project first:
+>>> $ git clone git://github.com/foo/bar.git
+Hack away & commit on a branch.
+>>> $ gizz request-pull # opens an editor for a title & body
+This command forks the parent repo, pushes the current branch and then opens a
+pull request to the parent repo's master branch.
+Or specifying some more details:
+>>> $ gizz request-pull --repo foo/bar --base master --head bug-bar
+
+Opening a pull request already having forked the project first:
+>>> $ git clone git://github.com/foo/bar.git
+>>> $ git remote add username git@github.com:username/bar.git
+Hack away & commit on a branch.
+>>> $ gizz request-pull
+This command pushes the current branch to origin, and then opens a pull request
+to origin's master branch.
+
+Opening a pull request after cloning your own fork:
+>>> $ git clone git://github.com/username/bar.git
+Hack away & commit on a branch.
+>>> $ gizz request-pull
+This command pushes the current branch to origin (your fork) and then opens a
+pull request to the parent repo's master branch.
+
 Installation
 ------------
 
-See the file called INSTALL for details on how to install gizz.
+gizz uses Python distutils. To install gizz for all users:
+>>> $ python3 setup.py install
+To install gizz only for the current user:
+>>> $ python3 setup.py install --user
 
 Contributing
 ------------
@@ -48,7 +75,7 @@ Contributing
 Fork it on GitHub, hack away and then send a pull request (preferably using
 gizz). To run gizz in the source tree without having to install it first, use
 the PYTHONPATH environment variable:
-    $ PYTHONPATH=path/to/clone/directory bin/gizz -h
+>>> $ PYTHONPATH=path/to/clone/directory bin/gizz -h
 
 Licensing
 ---------
