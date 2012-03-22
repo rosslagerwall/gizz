@@ -18,6 +18,8 @@ import getpass
 import os
 import subprocess
 import tempfile
+import filecmp
+import shutil
 
 class PasswordGrabber:
 
@@ -106,15 +108,23 @@ class MessageGetter:
 
     def edit(self):
         self._f.close()
+        f, copy_name = tempfile.mkstemp()
+        os.close(f)
+        shutil.copy(self._f.name, copy_name)
+        
         editor = os.environ['EDITOR'] if 'EDITOR' in os.environ else 'nano'
         with subprocess.Popen([editor, self._f.name]) as p:
             p.wait()
+
+        no_diff = filecmp.cmp(self._f.name, copy_name)
 
         with open(self._f.name, 'r') as f:
             result = f.read()
 
         os.unlink(self._f.name)
-        return self._parse(result)
+        os.unlink(copy_name)
+
+        return None if no_diff else self._parse(result)
 
 
 class TitledMessageGetter(MessageGetter):

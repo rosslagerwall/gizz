@@ -282,8 +282,10 @@ class Cmd_RequestPull(Cmd):
 
         # get the title and body for the pr
         m = TitledMessageGetter()
-        title, body = m.edit()
-
-        source = gizz.ghlib.Branch(head_repo, head)
-        target = gizz.ghlib.Branch(base_repo, self._base)
-        target.create_pull_request(title, body, source)
+        edit_result = m.edit()
+        if edit_result is None:
+            print("Pull request cancelled")
+        else:
+            source = gizz.ghlib.Branch(head_repo, head)
+            target = gizz.ghlib.Branch(base_repo, self._base)
+            target.create_pull_request(edit_result[0], edit_result[1], source)
