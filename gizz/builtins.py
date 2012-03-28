@@ -21,6 +21,8 @@ from gizz.utils import *
 
 class Cmd:
 
+    gh_url = re.compile(r'^(?:git://github.com/|git@github.com:)(\w+)/(\w+)(?:\.git)?')
+
     def __init__(self):
         pass
 
@@ -31,8 +33,9 @@ class Cmd:
         output = git_system('remote', '-v', 'show')
         for line in output.strip().split('\n'):
             name, url, _ = line.split()
-            if name == remote_name and 'github.com' in url:
-                return re.findall('\w+/\w+\.git', url)[0][:-4].split('/')
+            matches = self.gh_url.findall(url)
+            if len(matches) > 0:
+                return matches[0]
 
         return (None, None)
 
