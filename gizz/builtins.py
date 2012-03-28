@@ -33,9 +33,10 @@ class Cmd:
         output = git_system('remote', '-v', 'show')
         for line in output.strip().split('\n'):
             name, url, _ = line.split()
-            matches = self.gh_url.findall(url)
-            if len(matches) > 0:
-                return matches[0]
+            if name == remote_name:
+                matches = self.gh_url.findall(url)
+                if len(matches) > 0:
+                    return matches[0]
 
         return (None, None)
 
