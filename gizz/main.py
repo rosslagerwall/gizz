@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gizz.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import argparse
 from gizz.builtins import *
 
@@ -100,4 +101,7 @@ def run():
     ug = StoredUsernameGrabber()
     pg = BasicPasswordGrabber()
     command.set_authorizer(Authorizer(ug, pg))
-    command.run()
+    try:
+        command.run()
+    except Exception as e:
+        print(e, file=sys.stderr)
