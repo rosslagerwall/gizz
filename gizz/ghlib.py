@@ -298,5 +298,15 @@ class PullRequest(LazyLoader):
                         '{}/{}'.format(username, self.head.name))
                 return branch_name
             except subprocess.CalledProcessError:
-                print(self.head.name, "already exists!", file=sys.stderr)
-                raise
+                branch_count = 0
+                while True:
+                    branch_count += 1
+                    branch_name = '{}-{}-{}'.format(username,
+                                                    self.head.name,
+                                                    branch_count)
+                    try:
+                        git_run('branch', branch_name,
+                                '{}/{}'.format(username, self.head.name))
+                        return branch_name
+                    except subprocess.CalledProcessError:
+                        pass
