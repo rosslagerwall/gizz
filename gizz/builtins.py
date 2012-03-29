@@ -213,6 +213,7 @@ class Cmd_RequestPull(Cmd):
         self._head = args.head
         self._base = args.base
         self._no_push = args.no_push
+        self._no_fork = args.no_fork
 
     def _get_repos_from_parent(self, user, reponame):
         head_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
@@ -234,6 +235,8 @@ class Cmd_RequestPull(Cmd):
             base_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
         base_repo.auth = self._auth
 
+        if self._no_fork:
+            raise ForkNeededException()
         head_repo = base_repo.fork()
         head_repo.add_as_remote()
 

@@ -90,6 +90,15 @@ class UnknownUserException(Exception):
         return 'unknown user'
 
 
+class ForkNeededException(Exception):
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return 'Fork needed but --no-fork option passed.'
+
+
 class MessageGetter:
 
     def __init__(self):

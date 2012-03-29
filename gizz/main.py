@@ -98,6 +98,9 @@ def run():
     cmd_req_pull.add_argument('-p', '--no-push',
                               help="don't push to the remote branch",
                               action='store_true')
+    cmd_req_pull.add_argument('-f', '--no-fork',
+                              help="don't fork the parent repo",
+                              action='store_true')
 
     args = parser.parse_args()
     command = get_command(args.subcommand, args)
