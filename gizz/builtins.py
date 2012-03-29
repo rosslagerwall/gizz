@@ -212,6 +212,7 @@ class Cmd_RequestPull(Cmd):
         self._arg_repo = args.repo
         self._head = args.head
         self._base = args.base
+        self._no_push = args.no_push
 
     def _get_repos_from_parent(self, user, reponame):
         head_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
@@ -281,8 +282,9 @@ class Cmd_RequestPull(Cmd):
             # TODO error
             pass
 
-        # attempt to push the local branch to the remote repo
-        git_run('push', push_name, head)
+        if not self._no_push:
+            # attempt to push the local branch to the remote repo
+            git_run('push', push_name, head)
 
         # get the title and body for the pr
         m = TitledMessageGetter()

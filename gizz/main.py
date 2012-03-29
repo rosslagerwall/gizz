@@ -95,6 +95,9 @@ def run():
     cmd_req_pull.add_argument('-e', '--head', type=str,
                               help='local branch (default: current branch)',
                               default=None)
+    cmd_req_pull.add_argument('-p', '--no-push',
+                              help="don't push to the remote branch",
+                              action='store_true')
 
     args = parser.parse_args()
     command = get_command(args.subcommand, args)
