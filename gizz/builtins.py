@@ -136,8 +136,9 @@ class Cmd_ListPullRequests(Cmd):
             print("Date:", pr.create_date)
             print("Id:", pr.id)
             print("Subject:", pr.title)
-            print("Merge {} at {}\n   to {} at {}".format(
-                    pr.head.name, pr.head.sha, pr.base.name, pr.base.sha))
+            print("Merge {} at {}\n   to {} at {}{}".format(
+                    pr.head.name, pr.head.sha, pr.base.name, pr.base.sha,
+                    " [auto-mergeable]" if pr.mergeable else ""))
             print(pr.body.strip())
         else:
             print(pr.id, '=>', pr.title)

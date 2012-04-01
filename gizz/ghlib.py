@@ -261,6 +261,7 @@ class PullRequest(LazyLoader):
         self.title = data['title']
         self.body = data['body']
         self.create_date = data['created_at']
+        self.mergeable = data['mergeable']
 
         head_repo = Repository(User(data['head']['user']['login']),
                                data['head']['repo']['name'])
