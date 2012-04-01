@@ -157,10 +157,11 @@ class Repository(LazyLoader):
 
         return tags
 
-    def get_pull_request_list(self):
-        r = _Request('/repos/{user}/{repo}/pulls')
+    def get_pull_request_list(self, closed=False):
+        r = _Request('/repos/{user}/{repo}/pulls?state={state}')
         r.add_url_param('user', self.user.username)
         r.add_url_param('repo', self.reponame)
+        r.add_url_param('state', 'closed' if closed else 'open')
         r.perform()
         pull_reqs_data = r.get_response()
 

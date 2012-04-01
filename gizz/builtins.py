@@ -128,6 +128,7 @@ class Cmd_ListPullRequests(Cmd):
         self._verbose = args.verbose
         self._id = args.id
         self._comments = args.comments
+        self._closed = args.closed
 
     def _print(self, pr, verbose=True):
         if verbose:
@@ -160,7 +161,7 @@ class Cmd_ListPullRequests(Cmd):
             pr = repo.get_pull_request(self._id)
             self._print(pr)
         else:
-            pr_list = repo.get_pull_request_list()
+            pr_list = repo.get_pull_request_list(closed=self._closed)
             for i, pr in enumerate(pr_list):
                 if self._verbose and i != 0:
                     print('--')
