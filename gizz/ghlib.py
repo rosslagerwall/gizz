@@ -310,3 +310,25 @@ class PullRequest(LazyLoader):
                         return branch_name
                     except subprocess.CalledProcessError:
                         pass
+
+    def get_comments(self):
+        r = _Request('/repos/{user}/{repo}/issues/{id}/comments')
+        r.add_url_param('user', self.repo.user.username)
+        r.add_url_param('repo', self.repo.reponame)
+        r.add_url_param('id', self.id)
+        r.perform()
+        data = r.get_response()
+        comments = []
+
+        for c in data:
+            comments.append(PullRequestComment(self, User(c['user']['login']),
+                                               c['body'].strip()))
+        return comments
+
+
+class PullRequestComment:
+
+    def __init__(self, pr, user, body):
+        self.pr = pr
+        self.user = user
+        self.body = body

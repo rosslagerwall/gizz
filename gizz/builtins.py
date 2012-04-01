@@ -127,6 +127,7 @@ class Cmd_ListPullRequests(Cmd):
         self._arg_repo = args.repo
         self._verbose = args.verbose
         self._id = args.id
+        self._comments = args.comments
 
     def _print(self, pr, verbose=True):
         if verbose:
@@ -140,6 +141,13 @@ class Cmd_ListPullRequests(Cmd):
             print(pr.body.strip())
         else:
             print(pr.id, '=>', pr.title)
+        if self._comments:
+            comments = pr.get_comments()
+            if comments:
+                print()
+            for c in comments:
+                print("Comment from:", c.user.username)
+                print(c.body)
 
     def run(self):
         if self._arg_repo is None:

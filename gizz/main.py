@@ -67,6 +67,8 @@ def run():
     cmd_list_pr = subparsers.add_parser('list-pr', help='a help')
     cmd_list_pr.add_argument('-v', '--verbose', help='more details',
                              action='store_true')
+    cmd_list_pr.add_argument('-c', '--comments', help="show comments",
+                                action='store_true')
     cmd_list_pr.add_argument('--repo', type=str,
                              help='list pull requests of REPO')
     cmd_list_pr.add_argument('id', type=int, help='list request #id',
