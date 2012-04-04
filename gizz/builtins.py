@@ -167,6 +167,7 @@ class Cmd_ListPullRequests(Cmd):
                     print('--')
                 self._print(pr, self._verbose)
 
+
 class Cmd_FetchPullRequest(Cmd):
 
     def __init__(self, args):
