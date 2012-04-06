@@ -31,6 +31,7 @@ class _Request:
         self._location = location
         self.method = 'GET'
         self.requires_auth = False
+        self._headers = {}
 
     def add_url_param(self, key, param):
         self._url_params[key] = param
@@ -38,20 +39,25 @@ class _Request:
     def set_post_data(self, post_object):
         self.post_object = post_object
 
+    def add_header(self, k, v):
+        self._headers[k] = v
+
     def perform(self):
         if self.post_object is None:
             json_data = None
         else:
             json_data = json.dumps(self.post_object)
+        if json_data:
+            self._headers['Content-Length'] = str(len(json_data))
         location = self._location.format(**self._url_params)
-        headers = {}
         if self.requires_auth:
             encoded = base64.b64encode(("{}:{}".format(self.username,
                                                        self.password)).encode())
-            headers['Authorization'] = b'Basic ' + encoded
+            self._headers['Authorization'] = b'Basic ' + encoded
 
         conn = http.client.HTTPSConnection(HOSTNAME)
-        conn.request(self.method, location, body=json_data, headers=headers)
+        conn.request(self.method, location, body=json_data,
+                     headers=self._headers)
         resp = conn.getresponse()
         self._recv_data = resp.read()
 
