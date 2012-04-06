@@ -99,6 +99,15 @@ class ForkNeededException(Exception):
         return 'Fork needed but --no-fork option passed.'
 
 
+class InvalidArgumentException(Exception):
+
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return 'Invalid argument: ' + self.msg
+
+
 class MessageGetter:
 
     def __init__(self):

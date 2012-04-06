@@ -175,6 +175,7 @@ class Cmd_FetchPullRequest(Cmd):
         self._arg_repo = args.repo
         self._id = args.id
         self._fetch_all = args.id is None
+        self._automerge = args.merge
 
     def run(self):
         if self._arg_repo is None:
@@ -183,11 +184,20 @@ class Cmd_FetchPullRequest(Cmd):
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
         if self._fetch_all:
+            if self._automerge:
+                raise InvalidArgumentException('--merge requires a specific id')
             for pr in repo.get_pull_request_list():
                 self._fetch_one_pull_request(pr)
         else:
             pr = repo.get_pull_request(self._id)
-            self._fetch_one_pull_request(pr)
+            if self._automerge:
+                pr.auth = self._auth
+                sha, msg = pr.automerge()
+                print(msg)
+                if sha:
+                    print('{} is now at {}'.format(pr.head.name, sha))
+            else:
+                self._fetch_one_pull_request(pr)
 
     def _fetch_one_pull_request(self, pr):
         fetched_branch = pr.fetch()

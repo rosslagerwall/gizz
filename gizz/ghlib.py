@@ -333,6 +333,23 @@ class PullRequest(LazyLoader):
                                                c['body'].strip()))
         return comments
 
+    def automerge(self):
+        r = _Request('/repos/{user}/{repo}/pulls/{id}/merge')
+        r.add_url_param('user', self.repo.user.username)
+        r.add_url_param('repo', self.repo.reponame)
+        r.add_url_param('id', self.id)
+        r.requires_auth = True
+        r.username = self.auth.get_username()
+        r.password = self.auth.get_password()
+        r.method = 'PUT'
+        r.set_post_data({})
+        r.perform()
+        data = r.get_response()
+        if 'sha' in data:
+            return data['sha'], data['message']
+        else:
+            return None, data['message']
+
 
 class PullRequestComment:
 

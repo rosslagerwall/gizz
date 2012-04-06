@@ -81,6 +81,8 @@ def run():
                                          'local branch')
     cmd_fetch_pr.add_argument('--repo', type=str,
                               help='fetch request from REPO')
+    cmd_fetch_pr.add_argument('-m', '--merge', help="automerge pull request",
+                              action='store_true')
     cmd_fetch_pr.add_argument('id', type=int, help='fetch request #id',
                               default=None, nargs='?')
 
