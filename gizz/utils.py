@@ -108,6 +108,15 @@ class InvalidArgumentException(Exception):
         return 'Invalid argument: ' + self.msg
 
 
+class InvalidRepositoryException(Exception):
+
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return 'Invalid repository: ' + self.msg
+
+
 class MessageGetter:
 
     def __init__(self):

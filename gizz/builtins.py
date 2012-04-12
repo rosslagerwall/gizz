@@ -109,8 +109,12 @@ class Cmd_Fork(Cmd):
     def run(self):
         if self._arg_repo is None:
             user, repo = self._get_gh_name('origin')
-            # TODO fail if user already owns the repo
-            # TODO fail if None, None is returned
+            if (user, repo) == (None, None):
+                raise InvalidRepositoryException(
+                    'does not appear to be a github repository')
+            if user == self._auth.get_username():
+                raise InvalidRepositoryException(
+                    'user already owns the repository')
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
