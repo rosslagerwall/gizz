@@ -52,7 +52,7 @@ class StoredUsernameGrabber:
 
     def __init__(self):
         self._username = None
-        self._path = os.path.expanduser('~/.gizzconfig')
+        self._path = get_config_path()
 
     def get_username(self):
         if self._username is None:
@@ -181,3 +181,13 @@ def git_run(*args):
     cmdline.extend(args)
     with open(os.devnull, 'wb') as null:
         subprocess.check_call(cmdline, stdout=null, stderr=null)
+
+# Returns ~/.config/gizz/config in the usual case
+def get_config_path():
+    config_home = os.getenv('XDG_CONFIG_HOME')
+    if config_home is None:
+        config_home = os.path.expanduser('~/.config')
+
+    config_dir = os.path.join(config_home, 'gizz')
+    os.makedirs(config_dir, exist_ok=True)
+    return os.path.join(config_dir, 'config')
