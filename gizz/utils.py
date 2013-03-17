@@ -138,8 +138,8 @@ class MessageGetter:
         f, copy_name = tempfile.mkstemp()
         os.close(f)
         shutil.copy(self._f.name, copy_name)
-        
-        editor = os.environ['EDITOR'] if 'EDITOR' in os.environ else 'nano'
+
+        editor = os.environ['EDITOR'] if 'EDITOR' in os.environ else 'vi'
         with subprocess.Popen([editor, self._f.name]) as p:
             p.wait()
 
