@@ -55,6 +55,7 @@ class _Request:
                                                        self.password)).encode())
             self._headers['Authorization'] = b'Basic ' + encoded
 
+        self._headers['User-agent'] = b'gizz'
         conn = http.client.HTTPSConnection(HOSTNAME)
         conn.request(self.method, location, body=json_data,
                      headers=self._headers)
