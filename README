@@ -51,8 +51,8 @@ Opening a pull request already having forked the project first:
 >>> $ git remote add username git@github.com:username/bar.git
 Hack away & commit on a branch.
 >>> $ gizz request-pull
-This command pushes the current branch to origin, and then opens a pull request
-to origin's master branch.
+This command pushes the current branch to username (your fork), and then opens
+a pull request to origin's master branch.
 
 Opening a pull request after cloning your own fork:
 >>> $ git clone git://github.com/username/bar.git
