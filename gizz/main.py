@@ -43,26 +43,30 @@ def run():
     subparsers = parser.add_subparsers(dest='subcommand',
                                        help='choose a subcommand')
 
-    cmd_list_repos = subparsers.add_parser('list-repos', help='a help')
+    cmd_list_repos = subparsers.add_parser('list-repos',
+                                           help='list the user\'s repos')
     cmd_list_repos.add_argument('user', type=str, help='list for user',
                                 default=None, nargs='?')
 
-    cmd_list_branches = subparsers.add_parser('list-branches', help='a help')
+    cmd_list_branches = subparsers.add_parser('list-branches',
+                                              help='list branches of a repo')
     cmd_list_branches.add_argument('--repo', type=str,
                                    help='list branches of REPO')
 
-    cmd_list_tags = subparsers.add_parser('list-tags', help='a help')
+    cmd_list_tags = subparsers.add_parser('list-tags',
+                                          help='list tags of a repo')
     cmd_list_tags.add_argument('--repo', type=str,
                                help='list tags of REPO')
 
-    cmd_fork = subparsers.add_parser('fork', help='a help')
+    cmd_fork = subparsers.add_parser('fork', help='fork a repo')
     cmd_fork.add_argument('-n', '--no-add',
                           help="don't add new repository as a remote",
                           action='store_true')
     cmd_fork.add_argument('--repo', type=str,
                                help='fork REPO')
 
-    cmd_list_pr = subparsers.add_parser('list-pr', help='a help')
+    cmd_list_pr = subparsers.add_parser('list-pr',
+                                        help='list pull requests of a repo')
     cmd_list_pr.add_argument('-v', '--verbose', help='more details',
                              action='store_true')
     cmd_list_pr.add_argument('--closed', help="list closed requests",
