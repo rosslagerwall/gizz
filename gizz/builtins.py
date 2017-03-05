@@ -194,7 +194,7 @@ class Cmd_FetchPullRequest(Cmd):
                 sha, msg = pr.automerge()
                 print(msg)
                 if sha:
-                    print('{} is now at {}'.format(pr.head.name, sha))
+                    print('{} is now at {}'.format(pr.base.name, sha))
             else:
                 self._fetch_one_pull_request(pr)
 
