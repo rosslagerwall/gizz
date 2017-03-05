@@ -20,9 +20,7 @@ from gizz.builtins import *
 
 # a factory to get the correct Command object based on the user input.
 def get_command(subcommand, args):
-    if subcommand == 'whoami':
-        return Cmd_WhoAmI(args)
-    elif subcommand == 'list-branches':
+    if subcommand == 'list-branches':
         return Cmd_ListBranches(args)
     elif subcommand == 'list-tags':
         return Cmd_ListTags(args)
@@ -85,11 +83,6 @@ def run():
                               action='store_true')
     cmd_fetch_pr.add_argument('id', type=int, help='fetch request #id',
                               default=None, nargs='?')
-
-    cmd_whoami = subparsers.add_parser('whoami',
-                                       help='get or set your GitHub username')
-    cmd_whoami.add_argument('user', type=str, help='set username to user',
-                            default=None, nargs='?')
 
     cmd_req_pull = subparsers.add_parser('request-pull',
                                          help='create a pull request on GitHub')

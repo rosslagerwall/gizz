@@ -207,24 +207,6 @@ class Cmd_FetchPullRequest(Cmd):
         print("Merge {} into {}".format(fetched_branch, pr.base.name))
 
 
-class Cmd_WhoAmI(Cmd):
-
-    def __init__(self, args):
-        Cmd.__init__(self)
-        self._user = args.user
-
-    def run(self):
-        if self._user is None:
-            try:
-                print(get_auth().get_username())
-            except UnknownUserException:
-                print("Unknown user: set your GitHub username with gizz whoami")
-        else:
-            path = get_config_path()
-            with open(path, 'w') as out:
-                print(self._user, file=out)
-
-
 class Cmd_RequestPull(Cmd):
 
     def __init__(self, args):
