@@ -26,9 +26,6 @@ class Cmd:
     def __init__(self):
         pass
 
-    def set_authorizer(self, auth):
-        self._auth = auth
-
     def _get_gh_name(self, remote_name):
         output = git_system('remote', '-v', 'show')
         for line in output.strip().split('\n'):
@@ -41,8 +38,8 @@ class Cmd:
         return (None, None)
 
     def _get_best_gh_name(self):
-        user, repo = self._get_gh_name(self._auth.get_username())
-        remote_name = self._auth.get_username()
+        user, repo = self._get_gh_name(get_auth().get_username())
+        remote_name = get_auth().get_username()
         if user is None or repo is None:
             user, repo = self._get_gh_name('origin')
             remote_name = 'origin'
@@ -60,7 +57,7 @@ class Cmd_ListRepos(Cmd):
 
     def run(self):
         if self._username is None:
-            user = gizz.ghlib.User(self._auth.get_username())
+            user = gizz.ghlib.User(get_auth().get_username())
         else:
             user = gizz.ghlib.User(self._username)
         for repo in user.get_repo_list():
@@ -112,13 +109,12 @@ class Cmd_Fork(Cmd):
             if (user, repo) == (None, None):
                 raise InvalidRepositoryException(
                     'does not appear to be a github repository')
-            if user == self._auth.get_username():
+            if user == get_auth().get_username():
                 raise InvalidRepositoryException(
                     'user already owns the repository')
         else:
             user, repo = self._arg_repo.split('/')
         repo = gizz.ghlib.Repository(gizz.ghlib.User(user), repo)
-        repo.auth = self._auth
         new_repo = repo.fork()
         if self._arg_repo is None and not self._no_add:
             new_repo.add_as_remote()
@@ -195,7 +191,6 @@ class Cmd_FetchPullRequest(Cmd):
         else:
             pr = repo.get_pull_request(self._id)
             if self._automerge:
-                pr.auth = self._auth
                 sha, msg = pr.automerge()
                 print(msg)
                 if sha:
@@ -221,7 +216,7 @@ class Cmd_WhoAmI(Cmd):
     def run(self):
         if self._user is None:
             try:
-                print(self._auth.get_username())
+                print(get_auth().get_username())
             except UnknownUserException:
                 print("Unknown user: set your GitHub username with gizz whoami")
         else:
@@ -248,7 +243,6 @@ class Cmd_RequestPull(Cmd):
         else:
             u, r = self._arg_repo.split('/')
             base_repo = gizz.ghlib.Repository(gizz.ghlib.User(u), r)
-        base_repo.auth = self._auth
 
         return head_repo, base_repo
 
@@ -258,7 +252,6 @@ class Cmd_RequestPull(Cmd):
         else:
             user, reponame = self._arg_repo.split('/')
             base_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
-        base_repo.auth = self._auth
 
         if self._no_fork:
             raise ForkNeededException()
@@ -274,7 +267,6 @@ class Cmd_RequestPull(Cmd):
         else:
             user, reponame = self._arg_repo.split('/')
             base_repo = gizz.ghlib.Repository(gizz.ghlib.User(user), reponame)
-        base_repo.auth = self._auth
 
         head_repo = gizz.ghlib.Repository(
             gizz.ghlib.User(remote_username[0]), remote_username[1])
@@ -293,7 +285,7 @@ class Cmd_RequestPull(Cmd):
         # figure out what the base and head repos are
         # if the user does not have a Git remote either as origin or <username>
         # which is a personal GitHub repo, fork the base repo to get one
-        auth_username = self._auth.get_username()
+        auth_username = get_auth().get_username()
         remote_origin = self._get_gh_name('origin')
         remote_username = self._get_gh_name(auth_username)
         if remote_origin[0] == auth_username:

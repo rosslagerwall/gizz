@@ -30,7 +30,6 @@ class _Request:
         self._url_params = {}
         self._location = location
         self.method = 'GET'
-        self.requires_auth = False
         self._headers = {}
 
     def add_url_param(self, key, param):
@@ -50,10 +49,8 @@ class _Request:
         if json_data:
             self._headers['Content-Length'] = str(len(json_data))
         location = self._location.format(**self._url_params)
-        if self.requires_auth:
-            encoded = base64.b64encode(("{}:{}".format(self.username,
-                                                       self.password)).encode())
-            self._headers['Authorization'] = b'Basic ' + encoded
+        auth_token = get_auth().get_auth_token().encode()
+        self._headers['Authorization'] = b'token ' + auth_token
 
         self._headers['User-agent'] = b'gizz'
         conn = http.client.HTTPSConnection(HOSTNAME)
@@ -190,12 +187,9 @@ class Repository(LazyLoader):
         r.add_url_param('user', self.user.username)
         r.add_url_param('repo', self.reponame)
         r.method = 'POST'
-        r.requires_auth = True
-        r.username = self.auth.get_username()
-        r.password = self.auth.get_password()
         r.perform()
         repo_data = r.get_response()
-        return Repository(User(self.auth.get_username()), self.reponame,
+        return Repository(User(get_auth().get_username()), self.reponame,
                           data=repo_data)
 
     def add_as_remote(self):
@@ -229,9 +223,6 @@ class Branch:
         r.add_url_param('user', self.repo.user.username)
         r.add_url_param('repo', self.repo.reponame)
         r.method = 'POST'
-        r.requires_auth = True
-        r.username = self.repo.auth.get_username()
-        r.password = self.repo.auth.get_password()
         r.perform()
         repo_data = r.get_response()
 
@@ -339,9 +330,6 @@ class PullRequest(LazyLoader):
         r.add_url_param('user', self.repo.user.username)
         r.add_url_param('repo', self.repo.reponame)
         r.add_url_param('id', self.id)
-        r.requires_auth = True
-        r.username = self.auth.get_username()
-        r.password = self.auth.get_password()
         r.method = 'PUT'
         r.set_post_data({})
         r.perform()

@@ -21,64 +21,40 @@ import tempfile
 import filecmp
 import shutil
 
-class PasswordGrabber:
+_auth = None
 
-    def __init__(self):
-        self._password = None
+def set_auth(auth):
+    global _auth
+    _auth = auth
 
-    def get_password(self):
-        if self._password is None:
-            self._get_password_from_user()
+def get_auth():
+    return _auth
 
-        return self._password
-
-
-class BasicPasswordGrabber(PasswordGrabber):
-
-    def _get_password_from_user(self):
-        self._password = getpass.getpass()
-
-
-class BasicUsernameGrabber:
-
-    def __init__(self, username):
-        self._username = username
-
-    def get_username(self):
-        return self._username
-
-
-class StoredUsernameGrabber:
+class AuthTokenAuthorizer:
 
     def __init__(self):
         self._username = None
-        self._path = get_config_path()
+        self._auth_token = None
 
     def get_username(self):
         if self._username is None:
+
             try:
-                with open(self._path, 'r') as in_file:
-                    self._username = in_file.readline().strip()
-            except IOError as e:
-                if e.errno == 2:
-                    raise UnknownUserException()
-                else:
-                    raise
+                self._username = git_system('config', 'gizz.username').strip()
+            except subprocess.CalledProcessError as e:
+                raise UnknownUserException()
 
         return self._username
 
+    def get_auth_token(self):
+        if self._auth_token is None:
 
-class Authorizer:
+            try:
+                self._auth_token = git_system('config', 'gizz.authtoken').strip()
+            except subprocess.CalledProcessError as e:
+                raise NoAuthTokenException()
 
-    def __init__(self, username_grabber, password_grabber):
-        self._username_grabber = username_grabber
-        self._password_grabber = password_grabber
-
-    def get_username(self):
-        return self._username_grabber.get_username()
-
-    def get_password(self):
-        return self._password_grabber.get_password()
+        return self._auth_token
 
 
 class UnknownUserException(Exception):
@@ -88,6 +64,15 @@ class UnknownUserException(Exception):
 
     def __str__(self):
         return 'unknown user'
+
+
+class NoAuthTokenException(Exception):
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return 'no auth token'
 
 
 class ForkNeededException(Exception):

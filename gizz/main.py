@@ -110,10 +110,16 @@ def run():
 
     args = parser.parse_args()
     command = get_command(args.subcommand, args)
-    ug = StoredUsernameGrabber()
-    pg = BasicPasswordGrabber()
-    command.set_authorizer(Authorizer(ug, pg))
+    set_auth(AuthTokenAuthorizer())
     try:
         command.run()
+    except UnknownUserException as e:
+        print('''You need to configure your username. To do that, run:
+  git config --global gizz.username <username>''', file=sys.stderr)
+    except NoAuthTokenException as e:
+        print('''You need to configure your authentication token. To do that, go to
+https://github.com/settings/tokens and create a new authorization token.
+Then run:
+  git config --global gizz.authtoken <token>''', file=sys.stderr)
     except Exception as e:
         print(e, file=sys.stderr)
